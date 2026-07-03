@@ -1,0 +1,152 @@
+/* ==========================================================================
+   product-page.css — estilos de la ficha de producto (DS3 Comunicaciones)
+   Complementa a Tailwind: solo lo que no se resuelve con utilidades.
+   CSS moderno: custom properties, selector :is(), nesting nativo y
+   prefers-reduced-motion.
+   ========================================================================== */
+
+:root {
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-fast: 180ms;
+  --dur-base: 200ms;
+  --lift-tile: -2px;
+  --lift-card: -4px;
+}
+
+html { scroll-behavior: smooth; }
+
+/* Tipografía: Inter para texto, Poppins para títulos.
+   (Sustituye a la fuente del sistema y corrige la fuente que antes no cargaba.) */
+body { font-family: "Inter", system-ui, -apple-system, sans-serif; }
+:is(h1, h2, h3, .font-display) {
+  font-family: "Poppins", "Inter", sans-serif;
+  letter-spacing: -0.01em;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: none; }
+}
+.fade-up { animation: fadeUp 0.4s var(--ease-out) both; }
+
+/* Superficies con hover sin "temblor":
+   translateZ(0) promueve a capa GPU propia -> el logo/tarjeta no se
+   re-rasteriza en cada frame. La transición actúa SOLO sobre transform y
+   sombra (nunca 'all'), evitando reflow. */
+:is(.brand-tile, .product-card) {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  transition:
+    transform var(--dur-base) var(--ease-out),
+    box-shadow var(--dur-base) var(--ease-out),
+    border-color var(--dur-base) var(--ease-out);
+}
+
+.brand-tile {
+  &:hover { transform: translate3d(0, var(--lift-tile), 0); }
+  & img {
+    pointer-events: none;
+    user-select: none;
+  }
+}
+
+.product-card:hover { transform: translate3d(0, var(--lift-card), 0); }
+
+/* Chips de especificaciones: ícono en badge circular + hover sutil */
+.spec-chip {
+  transition: border-color var(--dur-base) var(--ease-out),
+              box-shadow var(--dur-base) var(--ease-out);
+
+  &:hover { border-color: var(--tw-cisco, #049FD9); box-shadow: 0 4px 14px rgb(4 159 217 / 0.12); }
+
+  & > i {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: 2.25rem;
+    block-size: 2.25rem;
+    border-radius: 9999px;
+    background: #eff6ff; /* blue-50 */
+    margin-block-end: 0.25rem;
+  }
+}
+
+/* Dropdown de precios (escritorio): apertura animada con transform + opacity.
+   Selectores planos (sin nesting) para máxima compatibilidad. */
+.dd-panel {
+  transform-origin: top right;
+  transition:
+    opacity var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out);
+}
+.dd-panel[data-open="false"] {
+  opacity: 0;
+  transform: scale(0.96) translateY(-4px);
+  pointer-events: none;
+}
+.dd-panel[data-open="true"] {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+  pointer-events: auto;
+}
+
+/* Submenú <details> (móvil): rotación del chevron al abrir */
+.chev { transition: transform var(--dur-base) var(--ease-out); }
+details[open] > summary .chev { transform: rotate(180deg); }
+
+/* ---- Buscador (estilo command palette) ---- */
+@keyframes searchIn {
+  from { opacity: 0; transform: translateY(-10px) scale(0.98); }
+  to   { opacity: 1; transform: none; }
+}
+/* La animación se reproduce cada vez que el modal deja de estar oculto */
+#search-modal:not(.hidden) .search-panel {
+  animation: searchIn var(--dur-fast) var(--ease-out) both;
+}
+
+/* Teclas (kbd) */
+.kbd {
+  align-items: center;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+  padding: 0.05rem 0.4rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #6b7280;
+  line-height: 1.4;
+}
+.kbd-on-blue {
+  border-color: rgb(255 255 255 / 0.4);
+  background: rgb(255 255 255 / 0.15);
+  color: #fff;
+}
+
+/* Chips de búsquedas frecuentes */
+.search-chip {
+  border-radius: 9999px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #374151;
+  transition: background-color var(--dur-base) var(--ease-out),
+              border-color var(--dur-base) var(--ease-out),
+              color var(--dur-base) var(--ease-out);
+
+  &:hover { background: #eff6ff; border-color: #049FD9; color: #049FD9; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #search-modal:not(.hidden) .search-panel { animation: none; }
+}
+
+/* Accesibilidad: respeta la preferencia de movimiento reducido */
+@media (prefers-reduced-motion: reduce) {
+  :is(.brand-tile, .product-card, .dd-panel, .fade-up) {
+    transition: none !important;
+    animation: none !important;
+  }
+  :is(.brand-tile, .product-card):hover { transform: none; }
+}
